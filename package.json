@@ -1,0 +1,22 @@
+{
+  "name": "redis-cache-middleware",
+  "version": "1.0.0",
+  "description": "a middleware use for express to store same request by redis",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GeaJiang/redis-cache-middleware.git"
+  },
+  "author": "gea",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/GeaJiang/redis-cache-middleware/issues"
+  },
+  "homepage": "https://github.com/GeaJiang/redis-cache-middleware#readme",
+  "dependencies": {
+    "redis": "^2.8.0"
+  }
+}
