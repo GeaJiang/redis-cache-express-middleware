@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/GeaJiang/redis-cache-middleware#readme",
   "dependencies": {
+    "bluebird": "^3.5.1",
     "redis": "^2.8.0"
   }
 }
