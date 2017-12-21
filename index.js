@@ -1,4 +1,3 @@
-'use strict';
 
 var redis = require('redis');
 var bluebird = require('bluebird');
@@ -16,13 +15,34 @@ var default_structure = ['FIFO', 'LFU', 'LRU'];
 class RedisCache {
 
   constructor(options) {
-    let { limit, structure, redis_db } = options;
+    let { limit, structure, host, port, db } = options;
     this.limit = limit || 2000;
     this.structure = ~default_structure.indexOf(structure) ? structure : 'LFU';
-    this.redis_db = redis_db || 1;
+    let config = {
+      host: host || '127.0.0.1',
+      post: port || 6379,
+      db: db || 1,
+      prefix: 'rc_'
+    };
+    let client = redis.createClient(config);
+    this.client = client;
   }
 
-  store(key, subkey) {
-    
+  store(key, subkey, data) {
+    this.client.hsetAsync(key, subkey, data);
+  }
+
+  get(key, subkey) {
+    if (!key) {
+      return null;
+    }
+    if (!subkey) {
+      return this.client.hgetallAsync(key);
+    }
+    return this.client.hgetAsync(key, subkey);
   }
 }
+
+module.exports = function(config) {
+  return new RedisCache(config);
+};
