@@ -17,17 +17,25 @@ class RedisCache {
   constructor(options) {
 
     let that = this;
+
+    options = Object.assign({
+      db: 1,
+      host: '127.0.0.1',
+      post: 6379,
+      limit: 200,
+      structure: 'FIFO'
+    }, options || {});
+
     let { limit, structure, host, port, db, password, time_interval } = options;
 
-    that.limit = limit || 2000;
     structure = ~default_structure.indexOf(structure) ? structure : 'FIFO';
 
     child_process.execSync('redis-cli config set notify-keyspace-events Ex');
 
     let config = {
-      host: host || '127.0.0.1',
-      post: port || 6379,
-      db: db || 1,
+      host: host,
+      post: port,
+      db: db,
       prefix: 'rc_'
     };
 
@@ -35,7 +43,7 @@ class RedisCache {
 
     that.client = client;
 
-    that.store = new store({ client: that.client, structure });
+    that.store = new store({ client: that.client, structure, limit });
 
     const scheduleClient = redis.createClient(config);
 
@@ -51,11 +59,11 @@ class RedisCache {
       that.scheduleClient.auth(password);
     }
 
-    that.scheduledRedis.psubscribe(`__keyevent@${db||1}__:expired`, (e) => {
+    that.scheduleClient.psubscribe(`__keyevent@${db||1}__:expired`, (e) => {
       e && console.error(e);
     });
 
-    that.scheduledRedis.on('pmessage', (channel, listen, key) => {
+    that.scheduleClient.on('pmessage', (channel, listen, key) => {
       if (listen == `__keyevent@${config.db}__:expired` && key == 'rc_flush_db_interval') {
         child_process.execSync('redis-cli eval \"return redis.call(\'del\',unpack(redis.call(\'keys\',ARGV[1])))\" 0 \'rc_*\'');
         that.client.setexAsync('flush_db_interval', time_interval, '');
@@ -64,29 +72,31 @@ class RedisCache {
   }
 
   cache(key, subkey) {
+    let that = this;
     return function(req, res, next) {
       if (typeof key != 'string' || typeof key != 'string') {
         next();
       }
-      return this.store.get(key, subkey)
+      // console.log(that);
+      return that.store.get(key, subkey)
       .then(data => {
         if (!data) {
           let _send = res.send;
           res.send = function(str) {
-            this.store.set(str, key, subkey);
+            that.store.set(str, key, subkey);
             _send.call(this, str);
           };
 
           let _json = res.json;
           res.json = function(obj) {
-            this.store.set(obj, key, subkey);
+            that.store.set(obj, key, subkey);
             _json.call(this, obj);
           };
 
           next();
         } else {
           let result = util.type(data);
-          this.store.update(key, subkey);
+          that.store.update(key, subkey);
           if (result.type == 'object') {
             res.json(result.data);
           } else {
