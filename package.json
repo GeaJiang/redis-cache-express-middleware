@@ -10,7 +10,7 @@
     "type": "git",
     "url": "git+https://github.com/GeaJiang/redis-cache-middleware.git"
   },
-  "author": "gea",
+  "author": "https://github.com/GeaJiang",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/GeaJiang/redis-cache-middleware/issues"

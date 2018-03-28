@@ -10,11 +10,6 @@ const util = require('./lib/util');
 bluebird.promisifyAll(redis.RedisClient.prototype);
 bluebird.promisifyAll(redis.Multi.prototype);
 
-//TODO: store quantity limit
-//TODO: different user
-//TODO: before res store override express responselancic
-//TODO: FIFO LRU LFU
-
 const default_structure = ['FIFO', 'LFU', 'LRU'];
 
 class RedisCache {
@@ -68,26 +63,30 @@ class RedisCache {
     });
   }
 
-  cache() {
+  cache(key, subkey) {
     return function(req, res, next) {
-      return store.get(...arguments)
+      if (typeof key != 'string' || typeof key != 'string') {
+        next();
+      }
+      return this.store.get(key, subkey)
       .then(data => {
         if (!data) {
           let _send = res.send;
           res.send = function(str) {
-            store.set(str, ...arguments);
+            this.store.set(str, key, subkey);
             _send.call(this, str);
           };
 
           let _json = res.json;
           res.json = function(obj) {
-            store.set(obj, ...arguments);
+            this.store.set(obj, key, subkey);
             _json.call(this, obj);
           };
 
           next();
         } else {
-          let result = util.isObject(data);
+          let result = util.type(data);
+          this.store.update(key, subkey);
           if (result.type == 'object') {
             res.json(result.data);
           } else {
@@ -98,11 +97,24 @@ class RedisCache {
     };
   }
 
-  update() {
-
+  update(key, subkey, data) {
+    if (typeof key != 'string') {
+      return;
+    }
+    if (!subkey && data) {
+      let type = Object.prototype.toString.call(data).replace(/^\[\w+\s|\]$/g,'').toLowerCase();
+      data = type == 'string' ? data : JSON.stringify(data);
+      this.client.setAsync(key, data);
+    } else if (subkey && !data) {
+      this.client.hdelAsync(key, subkey);
+    } else if (!subkey && !data) {
+      this.client.delAsync(key);
+    } else if (subkey && data) {
+      let type = Object.prototype.toString.call(data).replace(/^\[\w+\s|\]$/g,'').toLowerCase();
+      data = type == 'string' ? data : JSON.stringify(data);
+      this.client.hsetAsync(key, subkey, data);
+    }
   }
 }
 
-module.exports = function(config) {
-  return new RedisCache(config);
-};
+module.exports = RedisCache;
