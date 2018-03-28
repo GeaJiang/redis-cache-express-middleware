@@ -21,12 +21,12 @@ class RedisCache {
     options = Object.assign({
       db: 1,
       host: '127.0.0.1',
-      post: 6379,
+      port: 6379,
       limit: 200,
       structure: 'FIFO'
     }, options || {});
 
-    let { limit, structure, host, port, db, password, time_interval } = options;
+    let { limit, structure, host, port, db, password, interval, clearTime } = options;
 
     structure = ~default_structure.indexOf(structure) ? structure : 'FIFO';
 
@@ -34,7 +34,7 @@ class RedisCache {
 
     let config = {
       host: host,
-      post: port,
+      port: port,
       db: db,
       prefix: 'rc_'
     };
@@ -49,9 +49,15 @@ class RedisCache {
 
     that.scheduleClient = scheduleClient;
 
-    if (time_interval) {
-      that.time_interval = time_interval;
-      that.client.setexAsync('flush_db_interval', time_interval, '');
+    if (interval && clearTime) {
+      let reg = /^(0[0-9]|1[0-9]|2[0-3]|[0-9])\:(0[0-9]|1[0-9]|2[0-9]|3[0-9]|4[0-9]|5[0-9])$/;
+      let check = reg.test(clearTime);
+      if (!check) {
+        return;
+      }
+      let time = clearTime.split(':');
+      let ms = new Date().setHours(time[0], time[1], '00') - new Date().setHours('00', '00', '00');
+      that.client.psetexAsync('flush_db_interval', interval*1000 + ms, '');
     }
 
     if (password) {
@@ -66,7 +72,7 @@ class RedisCache {
     that.scheduleClient.on('pmessage', (channel, listen, key) => {
       if (listen == `__keyevent@${config.db}__:expired` && key == 'rc_flush_db_interval') {
         child_process.execSync('redis-cli eval \"return redis.call(\'del\',unpack(redis.call(\'keys\',ARGV[1])))\" 0 \'rc_*\'');
-        that.client.setexAsync('flush_db_interval', time_interval, '');
+        that.client.setexAsync('flush_db_interval', interval, '');
       }
     });
   }

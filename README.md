@@ -1,6 +1,32 @@
 # redis-cache-middleware
 a middleware for express to store same request by redis
 
+there are some configuration for redis
+```javascript
+let config = {
+  db: 1,
+  host: '127.0.0.1',
+  post: 6379,
+  limit: 200,
+  structure: 'LFU',
+  password: '1234',
+  clearTime: '12:00',
+  interval: 60 * 60 * 24
+}
+```
+db is select redis db
+
+host is redis host
+
+port is redis port
+
+limit is to limit store total apis data
+
+structure is i provide three algorithm to store data
+
+password is redis password
+
+clearTime and interval is clear all cache data automatically, for example if we set clearTime is '12:00' ,interval is 60 * 60 * 24  , redisCache will clear data at 12:00 everyday
 
 we can use cache() as a middleware to get data from redis instead of database , don't need to calculate data again if we have done before;
 example:
