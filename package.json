@@ -1,5 +1,5 @@
 {
-  "name": "redis-cache-middleware",
+  "name": "redis-cache-express-middleware",
   "version": "1.0.2",
   "description": "a middleware use for express to store same request by redis",
   "main": "index.js",
@@ -8,14 +8,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/GeaJiang/redis-cache-middleware.git"
+    "url": "git+https://github.com/GeaJiang/redis-cache-express-middleware.git"
   },
   "author": "https://github.com/GeaJiang",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/GeaJiang/redis-cache-middleware/issues"
+    "url": "https://github.com/GeaJiang/redis-cache-express-middleware/issues"
   },
-  "homepage": "https://github.com/GeaJiang/redis-cache-middleware#readme",
+  "homepage": "https://github.com/GeaJiang/redis-cache-express-middleware#readme",
   "dependencies": {
     "bluebird": "^3.5.1",
     "redis": "^2.8.0"
