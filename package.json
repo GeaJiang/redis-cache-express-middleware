@@ -1,6 +1,6 @@
 {
   "name": "redis-cache-express-middleware",
-  "version": "1.0.2",
+  "version": "1.0.4",
   "description": "a middleware use for express to store same request by redis",
   "main": "index.js",
   "scripts": {

@@ -1,4 +1,4 @@
-# redis-cache-middleware
+# redis-cache-express-middleware
 a middleware for express to store same request by redis
 
 there are some configuration for redis
